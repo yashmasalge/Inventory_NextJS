@@ -1,14 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-interface ProductModalProps {
-  product: any;
-  onSave: (product: any) => Promise<void>; // Make onSave async
+type Product = {
+  name: string;
+  category: string;
+  brand: string;
+  description: string;
+  price: number;
+};
+
+type ProductModalProps = {
+  product: Product | null;
+  onSave: (product: Product) => Promise<void>; // Make onSave async
   onClose: () => void;
-}
+};
 
 const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose }) => {
-  const [formProduct, setFormProduct] = useState<any>(product || {
+  const [formProduct, setFormProduct] = useState<Product>({
     name: '',
     category: '',
     brand: '',
@@ -17,23 +25,35 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
   });
 
   useEffect(() => {
-    setFormProduct(product || {
-      name: '',
-      category: '',
-      brand: '',
-      description: '',
-      price: 0,
-    });
+    if (product) {
+      setFormProduct(product);
+    } else {
+      setFormProduct({
+        name: '',
+        category: '',
+        brand: '',
+        description: '',
+        price: 0,
+      });
+    }
   }, [product]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormProduct({ ...formProduct, [name]: value });
+    setFormProduct((prevFormProduct) => ({
+      ...prevFormProduct,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async () => {
-    await onSave(formProduct);
-    onClose();
+    try {
+      await onSave(formProduct);
+      console.log(formProduct)
+      onClose();
+    } catch (error) {
+      console.error('Error saving product:', error);
+    }
   };
 
   return (
@@ -86,16 +106,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
             className="w-full p-2 mb-2 border rounded bg-gray-800 text-white"
           />
           <div className="flex justify-end space-x-2">
-            <button
-              onClick={onClose}
-              className="bg-gray-500 text-white p-2 rounded"
-            >
+            <button onClick={onClose} className="bg-gray-500 text-white p-2 rounded">
               Cancel
             </button>
-            <button
-              onClick={handleSubmit}
-              className="bg-blue-500 text-white p-2 rounded"
-            >
+            <button onClick={handleSubmit} className="bg-blue-500 text-white p-2 rounded">
               Save
             </button>
           </div>

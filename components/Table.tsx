@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import ProductModal from '../components/ProductModal';
 import { FaEdit, FaTrash } from 'react-icons/fa';
-import { useRouter } from "next/navigation";
+import ConfirmationDialog from './ConfirmationDialog';
+import SuccessMessage from './SuccessMessage';
 
 const Home = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -10,7 +11,6 @@ const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true); // State to manage loading state
   const [error, setError] = useState<string | null>(null); // State to manage error messages
-  const router = useRouter();
 
   useEffect(() => {
     fetchProducts();
@@ -58,43 +58,60 @@ const Home = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveProduct = async (product: any) => {
+  const handleCreateProduct = async (product: any) => {
     try {
-        if (currentProduct) {
-          await fetch(`http://localhost:3000/api/products/${currentProduct._id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(product),
-          });
-        } else {
-          await fetch('http://localhost:3000/api/products', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(product),
-          });
-        }
-        fetchProducts();
-      } catch (error: any) {
-        console.error('Error saving product:', error);
-      } finally {
-        setIsModalOpen(false);
-      }
+      const res = await fetch('http://localhost:3000/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+      if (!res.ok) throw new Error('Failed to create product');
+      fetchProducts();
+    } catch (error : any) {
+      setError(error.message);
+    }
   };
 
-  const handleDeleteProduct = async (id: string) => {
+  const handleUpdateProduct = async (product: any) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/products/${product._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(product),
+      });
+      if (!res.ok) throw new Error('Failed to update product');
+      fetchProducts();
+    } catch (error : any) {
+      setError(error.message);
+    }
+  };
+
+
+  const handleSaveProduct = async (product: any) => {
+    if (currentProduct) {
+      await handleUpdateProduct(product);
+    } else {
+      await handleCreateProduct(product);
+    }
+    setIsModalOpen(false);
+  };
+
+  const handleDeleteProduct = async (id: string) => {   
     try {
         await fetch(`http://localhost:3000/api/products?id=${id}`, {
           method: 'DELETE',
         });
+        // if (!res.ok) throw new Error('Failed to delete product');
         fetchProducts();
       } catch (error: any) {
         setError(error.message);
-      }
+      } 
   };
+
 
   if (loading) {
     return <p>Loading...</p>; 
