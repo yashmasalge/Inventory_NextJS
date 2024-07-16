@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
 interface ProductModalProps {
-  product: any; // Use 'any' type for product
-  onSave: (product: any) => void;
+  product: any;
+  onSave: (product: any) => Promise<void>; // Make onSave async
   onClose: () => void;
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose }) => {
-  const [formProduct, setFormProduct] = useState<any>({
+  const [formProduct, setFormProduct] = useState<any>(product || {
     name: '',
     category: '',
     brand: '',
@@ -17,17 +17,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
   });
 
   useEffect(() => {
-    if (product) {
-      setFormProduct(product);
-    } else {
-      setFormProduct({
-        name: '',
-        category: '',
-        brand: '',
-        description: '',
-        price: 0,
-      });
-    }
+    setFormProduct(product || {
+      name: '',
+      category: '',
+      brand: '',
+      description: '',
+      price: 0,
+    });
   }, [product]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -35,8 +31,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
     setFormProduct({ ...formProduct, [name]: value });
   };
 
-  const handleSubmit = () => {
-    onSave(formProduct);
+  const handleSubmit = async () => {
+    await onSave(formProduct);
     onClose();
   };
 

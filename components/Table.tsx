@@ -4,7 +4,7 @@ import ProductModal from '../components/ProductModal';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { useRouter } from "next/navigation";
 
-const Home: React.FC = () => {
+const Home = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [currentProduct, setCurrentProduct] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,7 +60,7 @@ const Home: React.FC = () => {
 
   const handleSaveProduct = async (product: any) => {
     try {
-        if (currentProduct && currentProduct._id) {
+        if (currentProduct) {
           await fetch(`http://localhost:3000/api/products/${currentProduct._id}`, {
             method: 'PUT',
             headers: {
@@ -69,7 +69,7 @@ const Home: React.FC = () => {
             body: JSON.stringify(product),
           });
         } else {
-          await fetch('/api/products', {
+          await fetch('http://localhost:3000/api/products', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const Home: React.FC = () => {
         }
         fetchProducts();
       } catch (error: any) {
-        setError(error.message);
+        console.error('Error saving product:', error);
       } finally {
         setIsModalOpen(false);
       }
