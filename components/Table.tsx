@@ -4,6 +4,7 @@ import ProductModal from '../components/ProductModal';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import ConfirmationDialog from './ConfirmationDialog';
 import SuccessMessage from './SuccessMessage';
+import Loading from './Loading';
 
 const Home = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -11,6 +12,9 @@ const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true); // State to manage loading state
   const [error, setError] = useState<string | null>(null); // State to manage error messages
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -69,6 +73,7 @@ const Home = () => {
       });
       if (!res.ok) throw new Error('Failed to create product');
       fetchProducts();
+      setSuccessMessage('Product created successfully');
     } catch (error : any) {
       setError(error.message);
     }
@@ -85,6 +90,7 @@ const Home = () => {
       });
       if (!res.ok) throw new Error('Failed to update product');
       fetchProducts();
+      setSuccessMessage('Product updated successfully');
     } catch (error : any) {
       setError(error.message);
     }
@@ -100,21 +106,47 @@ const Home = () => {
     setIsModalOpen(false);
   };
 
-  const handleDeleteProduct = async (id: string) => {   
+  // const handleDeleteProduct = async (id: string) => { 
+  //   setConfirmationMessage('Are you sure you want to delete this product?');
+    
+  //   const confirmDelete = async () => {
+  //   try {
+  //       await fetch(`http://localhost:3000/api/products?id=${id}`, {
+  //         method: 'DELETE',
+  //       });
+  //       // if (!res.ok) throw new Error('Failed to delete product');
+  //       fetchProducts();
+  //       setSuccessMessage('Product deleted successfully');
+  //     } catch (error: any) {
+  //       setError(error.message);
+  //     } 
+  //   }
+  //   setConfirmationMessage(null);
+  // };
+
+  const handleDeleteProduct = (id: string) => {
+    setProductToDelete(id);
+    setConfirmationMessage('Are you sure you want to delete this product?');
+  };
+
+  const confirmDelete = async () => {
     try {
-        await fetch(`http://localhost:3000/api/products?id=${id}`, {
-          method: 'DELETE',
-        });
-        // if (!res.ok) throw new Error('Failed to delete product');
-        fetchProducts();
-      } catch (error: any) {
-        setError(error.message);
-      } 
+      const res = await fetch(`http://localhost:3000/api/products?id=${productToDelete}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete product');
+      fetchProducts();
+      setSuccessMessage('Product deleted successfully');
+    } catch (error : any) {
+      setError(error.message);
+    }
+    setProductToDelete(null);
+    setConfirmationMessage(null);
   };
 
 
   if (loading) {
-    return <p>Loading...</p>; 
+    return <Loading />;
   }
 
   if (error) {
@@ -169,6 +201,19 @@ const Home = () => {
           product={currentProduct}
           onSave={handleSaveProduct}
           onClose={() => setIsModalOpen(false)}
+        />
+      )}
+      {confirmationMessage && (
+        <ConfirmationDialog
+          message={confirmationMessage}
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmationMessage(null)}
+        />
+      )}
+      {successMessage && (
+        <SuccessMessage
+          message={successMessage}
+          onClose={() => setSuccessMessage(null)}
         />
       )}
     </Layout>

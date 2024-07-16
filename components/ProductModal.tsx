@@ -23,6 +23,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
     description: '',
     price: 0,
   });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (product) {
@@ -47,14 +48,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onSave, onClose })
   };
 
   const handleSubmit = async () => {
-    try {
+    if (!formProduct.name || !formProduct.category || !formProduct.price) {
+        setError('Name, category, and price are required fields.');
+        return;
+      }
+      setError(null);
       await onSave(formProduct);
-      console.log(formProduct)
       onClose();
-    } catch (error) {
-      console.error('Error saving product:', error);
-    }
-  };
+    };
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50">
